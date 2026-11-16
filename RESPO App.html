@@ -1,0 +1,476 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>RESPO App</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600&display=swap">
+<style>
+/* Layout concept: one phone-sized column. Screens stack (welcome, book, pay, ticket, pod, done) with a bottom tab bar on the three main tabs.
+   On a desktop browser the column is shown inside a phone frame. */
+:root{
+  --bg:#F7F2EA; --card:#FFFDF8; --line:#E6DDCE; --ink:#1B2340; --muted:#5B6385;
+  --accent:#4B3FB5; --on-accent:#FFFFFF; --amber:#F2B35E; --on-amber:#121A33;
+  --soft:#ECE8FB; --ok:#2E7D5B; --warn:#B3261E; --stage:#E9E2D5;
+  --display:'Fraunces',Georgia,serif; --body:'DM Sans',Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121A33; --card:#1C2749; --line:#33407A; --ink:#F7F2EA; --muted:#A9B1D3;
+  --accent:#B4A8FF; --on-accent:#121A33; --soft:#27315C; --ok:#6FCF9D; --warn:#FF8A80; --stage:#0A0F20; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121A33; --card:#1C2749; --line:#33407A; --ink:#F7F2EA; --muted:#A9B1D3;
+  --accent:#B4A8FF; --on-accent:#121A33; --soft:#27315C; --ok:#6FCF9D; --warn:#FF8A80; --stage:#0A0F20; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
+h1,h2,h3,p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0;-webkit-tap-highlight-color:transparent}
+button:focus-visible,input:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+.phone{position:relative;display:flex;flex-direction:column;height:100%;width:100%;max-width:430px;margin:0 auto;background:var(--bg);overflow:hidden}
+@media (min-width:700px){
+  body{display:grid;place-items:center;background:var(--stage)}
+  .phone{height:min(860px,calc(100% - 32px));border-radius:36px;border:1px solid var(--line);box-shadow:0 30px 80px rgba(10,15,32,.28)}
+}
+.screen{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;background:var(--bg);color:var(--ink)}
+.in{padding:20px max(16px,env(safe-area-inset-left,0px)) 28px max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+.eyebrow{font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.h1{font-family:var(--display);font-weight:600;font-size:32px;line-height:1.12;text-wrap:balance}
+.h2{font-family:var(--display);font-weight:600;font-size:22px;line-height:1.2}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px}
+.row{display:flex;align-items:center;gap:12px}
+.between{justify-content:space-between}
+.grow{flex:1;min-width:0}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;border-radius:16px;background:var(--accent);color:var(--on-accent);font-weight:700;padding:0 20px}
+.btn.amber{background:var(--amber);color:var(--on-amber)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.back{display:inline-flex;align-items:center;gap:4px;color:var(--muted);font-weight:500;min-height:44px}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 12px;font-size:13px;font-weight:700;background:var(--soft);color:var(--accent)}
+.pill.ok{color:var(--ok)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-weight:500}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:700}
+.note{font-size:13px;color:var(--muted)}
+
+/* welcome */
+#s-welcome .in{min-height:100%;justify-content:space-between;padding-top:48px}
+.mark{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:600;font-size:28px;letter-spacing:.04em}
+.mark span{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:var(--accent);color:var(--on-accent)}
+.vals{display:flex;flex-direction:column;gap:12px;margin:0;padding:0;list-style:none}
+.vals li{display:flex;gap:12px;align-items:center}
+.vals .ic{color:var(--accent)}
+
+/* home */
+.loc{display:flex;flex-direction:column;gap:12px;text-align:left;width:100%}
+.loc:active{transform:scale(.99)}
+.free{font-family:var(--display);font-size:26px;font-weight:600}
+.loc.next{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.loc.next .muted{color:inherit;opacity:.85}
+
+/* slots */
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.slot{display:flex;flex-direction:column;align-items:center;min-height:62px;justify-content:center;border-radius:14px;border:1px solid var(--line);background:var(--card);font-weight:700}
+.slot small{font-weight:400;color:var(--muted);font-size:12px}
+.slot[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.slot[aria-pressed="true"] small{color:inherit}
+.slot[disabled]{opacity:.4;cursor:not-allowed}
+.stick{position:sticky;bottom:0;padding:12px 0 4px;background:linear-gradient(to top,var(--bg) 70%,transparent)}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.kv:last-child{border-bottom:0}
+.opt{display:flex;gap:12px;align-items:center;width:100%;text-align:left;border:1px solid var(--line);background:var(--card);border-radius:16px;padding:14px}
+.opt[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+.opt[disabled]{opacity:.5}
+.radio{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);flex:none}
+.opt[aria-pressed="true"] .radio{border:6px solid var(--accent)}
+
+/* ticket */
+.qrwrap{display:grid;place-items:center;padding:20px;background:#fff;border-radius:18px;border:1px solid var(--line)}
+.qrwrap svg{width:min(220px,100%);height:auto;display:block}
+.code{font-family:var(--display);font-size:28px;font-weight:600;letter-spacing:.06em;text-align:center}
+
+/* pod (always a dark night screen) */
+.pod{--bg:#0D1329;--card:#172042;--line:#2C3770;--ink:#F7F2EA;--muted:#A9B1D3;--accent:#B4A8FF;--on-accent:#121A33;--soft:#27315C;--ok:#6FCF9D;--warn:#FF8A80;position:relative}
+.pod{transition:background-color 3.5s ease}
+.pod.waking{background-color:#5A3F22}
+.pod .in{position:relative;z-index:1}
+.ringbox{position:relative;width:240px;height:240px;margin:0 auto}
+.ringbox svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring-bg{stroke:var(--line);fill:none;stroke-width:12}
+.ring-fg{stroke:var(--amber);fill:none;stroke-width:12;stroke-linecap:round;transition:stroke-dashoffset .3s linear}
+.ringtxt{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.time{font-family:var(--display);font-size:52px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1}
+.phases{display:flex;gap:3px}
+.ph{height:10px;border-radius:5px;background:var(--line)}
+.ph.on{background:var(--amber)}
+.phl{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{display:flex;flex-direction:column;gap:10px;min-width:0}
+.tile.wide{grid-column:1/-1}
+.tile .ic{color:var(--amber)}
+.tile h3{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
+input[type=range]{width:100%;accent-color:var(--amber);min-height:32px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg .chip{min-height:38px;padding:0 12px;font-size:14px}
+.pod .chip[aria-pressed="true"]{background:var(--amber);border-color:var(--amber);color:var(--on-amber)}
+.pulse{animation:pulse .5s ease-in-out infinite alternate}
+@keyframes pulse{from{transform:scale(1)}to{transform:scale(1.06)}}
+.danger{background:transparent;border:1px solid var(--warn);color:var(--warn)}
+
+/* tabs */
+.tabs{display:flex;border-top:1px solid var(--line);background:var(--card);padding-left:max(0px,env(safe-area-inset-left,0px));padding-right:max(0px,env(safe-area-inset-right,0px))}
+.tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:62px;justify-content:center;font-size:12px;font-weight:500;color:var(--muted)}
+.tabs button[aria-current="page"]{color:var(--accent);font-weight:700}
+
+.sheet{position:absolute;inset:0;z-index:20;display:flex;align-items:flex-end;background:rgba(10,15,32,.55)}
+.sheet .box{width:100%;background:var(--card);color:var(--ink);border-radius:24px 24px 0 0;padding:24px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:12px}
+.list{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+@media (prefers-reduced-motion:reduce){.pulse{animation:none}.pod{transition:none}.ring-fg{transition:none}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+<symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 3L5 14h6l-1 7 8-11h-6z"/></symbol>
+<symbol id="i-thermo" viewBox="0 0 24 24"><path d="M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0z"/></symbol>
+<symbol id="i-leaf" viewBox="0 0 24 24"><path d="M5 19c0-9 5-14 15-14 0 10-5 15-14 15"/><path d="M5 19c3-4 6-6 9-8"/></symbol>
+<symbol id="i-speaker" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></symbol>
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.1"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+<symbol id="i-bag" viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="12" rx="2"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></symbol>
+<symbol id="i-card" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+<symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+<symbol id="i-bt" viewBox="0 0 24 24"><path d="M7 7l10 10-5 4V3l5 4L7 17"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></symbol>
+</svg>
+
+<div class="phone" id="phone">
+
+<section class="screen" id="s-welcome">
+  <div class="in">
+    <div class="mark"><span><svg class="ic"><use href="#i-moon"/></svg></span>RESPO</div>
+    <div class="row" style="flex-direction:column;align-items:flex-start;gap:16px">
+      <p class="eyebrow">Sleeping pods on campus</p>
+      <h1 class="h1">Your space. Your silence. Your rest.</h1>
+      <ul class="vals">
+        <li><svg class="ic"><use href="#i-lock"/></svg><span>Closed, soundproof capsule</span></li>
+        <li><svg class="ic"><use href="#i-clock"/></svg><span>Book a 40-minute nap in seconds</span></li>
+        <li><svg class="ic"><use href="#i-shield"/></svg><span>Fresh sheet and UV clean after every session</span></li>
+      </ul>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="btn amber" data-act="start">Get started</button>
+      <p class="note" style="text-align:center">Prototype with sample data</p>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="s-home" hidden><div class="in" id="home"></div></section>
+<section class="screen" id="s-book" hidden><div class="in" id="book"></div></section>
+<section class="screen" id="s-pay" hidden><div class="in" id="pay"></div></section>
+<section class="screen" id="s-ticket" hidden><div class="in" id="ticket"></div></section>
+
+<section class="screen pod" id="s-pod" hidden>
+  <div class="in">
+    <div class="row between">
+      <span class="pill" id="podPill">Settling in</span>
+      <button class="chip" id="demoBtn" data-act="demo" aria-pressed="true">Demo speed</button>
+    </div>
+    <div class="ringbox">
+      <svg viewBox="0 0 200 200"><circle class="ring-bg" cx="100" cy="100" r="88"/><circle class="ring-fg" id="ring" cx="100" cy="100" r="88" stroke-dasharray="553" stroke-dashoffset="553"/></svg>
+      <div class="ringtxt"><div class="time" id="time">45:00</div><div class="muted small" id="phaseTxt">Session starts</div></div>
+    </div>
+    <div>
+      <div class="phases"><div class="ph" style="flex:2" id="p1"></div><div class="ph" style="flex:40" id="p2"></div><div class="ph" style="flex:3" id="p3"></div></div>
+      <div class="phl"><span>Settle 0–2</span><span>Nap 2–42</span><span>Wake 42–45</span></div>
+    </div>
+    <div class="card row" id="wakeCard" hidden style="border-color:var(--amber)">
+      <svg class="ic" style="color:var(--amber)"><use href="#i-sun"/></svg>
+      <div class="grow"><b>Time to wake up</b><p class="small muted">Light is rising. Soft alarm and cushion vibration are on.</p></div>
+      <span class="pulse pill" style="background:var(--amber);color:var(--on-amber)">Vibrating</span>
+    </div>
+
+    <div class="tiles">
+      <div class="card tile wide">
+        <div class="row between"><h3>Sound</h3><svg class="ic"><use href="#i-speaker"/></svg></div>
+        <div class="seg" id="sndSeg">
+          <button class="chip" data-act="sound" data-v="off" aria-pressed="true">Off</button>
+          <button class="chip" data-act="sound" data-v="rain" aria-pressed="false">Rain</button>
+          <button class="chip" data-act="sound" data-v="storm" aria-pressed="false">Storm</button>
+          <button class="chip" data-act="sound" data-v="waves" aria-pressed="false">Waves</button>
+          <button class="chip" data-act="sound" data-v="white" aria-pressed="false">White noise</button>
+        </div>
+        <label class="row small muted" for="vol"><span>Volume</span><input id="vol" type="range" min="0" max="100" value="40" class="grow"></label>
+        <button class="btn ghost" id="btBtn" data-act="pair" style="min-height:44px"><svg class="ic"><use href="#i-bt"/></svg><span id="btTxt">Pair your phone via Bluetooth (demo)</span></button>
+      </div>
+      <div class="card tile">
+        <div class="row between"><h3>Temperature</h3><svg class="ic"><use href="#i-thermo"/></svg></div>
+        <div class="time" style="font-size:32px"><span id="tempV">22</span>°C</div>
+        <input id="temp" type="range" min="18" max="26" value="22" aria-label="Temperature">
+      </div>
+      <div class="card tile">
+        <div class="row between"><h3>Light</h3><svg class="ic"><use href="#i-sun"/></svg></div>
+        <div class="time" style="font-size:32px"><span id="lightV">10</span>%</div>
+        <input id="light" type="range" min="0" max="100" value="10" aria-label="Cabin light">
+      </div>
+      <div class="card tile wide">
+        <div class="row between"><h3>Scent</h3><svg class="ic"><use href="#i-leaf"/></svg></div>
+        <div class="seg" id="scentSeg">
+          <button class="chip" data-act="scent" data-v="None" aria-pressed="true">None</button>
+          <button class="chip" data-act="scent" data-v="Lavender" aria-pressed="false">Lavender</button>
+          <button class="chip" data-act="scent" data-v="Forest" aria-pressed="false">Forest</button>
+        </div>
+      </div>
+      <div class="card tile"><svg class="ic"><use href="#i-bolt"/></svg><div><b>Charging</b><p class="small muted">Phone charging</p></div></div>
+      <div class="card tile"><svg class="ic"><use href="#i-bag"/></svg><div><b>Storage</b><p class="small muted">Under the bed, closed</p></div></div>
+    </div>
+    <button class="btn ghost" data-act="skip" id="skipBtn">Jump to wake-up (demo)</button>
+    <button class="btn danger" data-act="sos"><svg class="ic"><use href="#i-alert"/></svg>Emergency: open door</button>
+    <p class="note" style="text-align:center">No cameras inside. The capsule locks for UV only after you leave.</p>
+  </div>
+</section>
+
+<section class="screen" id="s-done" hidden><div class="in" id="done"></div></section>
+<section class="screen" id="s-pass" hidden><div class="in" id="pass"></div></section>
+<section class="screen" id="s-me" hidden><div class="in" id="me"></div></section>
+
+<nav class="tabs" id="tabs" hidden aria-label="Main">
+  <button data-act="tab" data-to="home"><svg class="ic"><use href="#i-pin"/></svg>Book</button>
+  <button data-act="tab" data-to="pass"><svg class="ic"><use href="#i-card"/></svg>Passes</button>
+  <button data-act="tab" data-to="me"><svg class="ic"><use href="#i-user"/></svg>Me</button>
+</nav>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="box" role="dialog" aria-modal="true" aria-labelledby="sheetT">
+    <h2 class="h2" id="sheetT">Open the door now?</h2>
+    <p class="muted">This ends your session and unlocks the capsule door. In the real capsule, the button works even if the power or the app fails.</p>
+    <button class="btn danger" data-act="sosYes">Open door and end session</button>
+    <button class="btn ghost" data-act="sosNo">Stay in the capsule</button>
+  </div>
+</div>
+</div>
+
+<script>
+(function(){
+/* ---- sample data: change here ---- */
+var PRICE=150, PASSES=[
+  {id:'month',name:'Monthly pass',n:8,price:900,sub:'8 sessions, valid for 30 days'},
+  {id:'exam',name:'Exam-week pass',n:5,price:600,sub:'5 sessions, valid for 14 days'}];
+var LOCS=[
+  {id:'lib',name:'Library, 2nd floor',walk:'2 min walk',pods:4},
+  {id:'sc',name:'Student Center',walk:'4 min walk',pods:6},
+  {id:'eng',name:'Engineering Building',walk:'6 min walk',pods:4}];
+var SLOTS=[];for(var i=0;i<16;i++){var m=480+i*45;SLOTS.push(('0'+Math.floor(m/60)).slice(-2)+':'+('0'+m%60).slice(-2));}
+function freeAt(li,i){var p=LOCS[li].pods;return (i*5+li*3+2)%(p+1);}
+function nextFree(li){for(var i=0;i<SLOTS.length;i++){if(freeAt(li,i)>0)return i;}return -1;}
+
+var S={loc:0,slot:-1,pay:'single',pass:null,history:[],booking:null,rate:{},demo:true,sound:'off',scent:'None'};
+function $(s){return document.querySelector(s);}
+function esc(t){return String(t).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function ic(n){return '<svg class="ic"><use href="#i-'+n+'"/></svg>';}
+function money(v){return '₺'+v.toLocaleString('en-US');}
+
+function go(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.hidden=s.id!=='s-'+id;});
+  var main=['home','pass','me'].indexOf(id)>-1;
+  $('#tabs').hidden=!main;
+  document.querySelectorAll('#tabs button').forEach(function(b){if(b.dataset.to===id)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
+  var r=R[id];if(r)r();
+  $('#s-'+id).scrollTop=0;
+}
+
+/* ---- renderers ---- */
+var R={
+ home:function(){
+  var h='<div><p class="eyebrow">Campus pods</p><h1 class="h1">Ready for a reset?</h1></div>';
+  h+='<p class="muted">Pick a pod location. Every session is 40 minutes of sleep time in a closed, soundproof capsule.</p>';
+  var best=0,bi=99;LOCS.forEach(function(l,li){var n=nextFree(li);if(n>-1&&n<bi){bi=n;best=li;}});
+  LOCS.forEach(function(l,li){
+    var n=nextFree(li),isBest=li===best;
+    h+='<button class="card loc'+(isBest?' next':'')+'" data-act="loc" data-i="'+li+'">'+
+      '<div class="row between"><span class="row">'+ic('pin')+'<b>'+esc(l.name)+'</b></span><span class="small muted">'+l.walk+'</span></div>'+
+      '<div class="row between"><div><div class="free">'+(n>-1?SLOTS[n]:'Full')+'</div><div class="small muted">'+(isBest?'Earliest free slot':'Next free slot')+'</div></div>'+
+      '<div style="text-align:right"><b>'+l.pods+' pods</b><div class="small muted">'+(n>-1?freeAt(li,n)+' free then':'all booked')+'</div></div></div></button>';
+  });
+  h+='<p class="note">Locations, times and availability are sample data in this prototype.</p>';
+  $('#home').innerHTML=h;
+ },
+ book:function(){
+  var l=LOCS[S.loc];
+  var h='<button class="back" data-act="tab" data-to="home">'+ic('back')+'Back</button>';
+  h+='<div><p class="eyebrow">'+esc(l.name)+'</p><h1 class="h1">Choose a time</h1></div>';
+  h+='<p class="muted small">Each booking is 45 minutes: 2 to settle in, 40 to nap, 3 to wake up gently.</p><div class="slots" role="group" aria-label="Time slots">';
+  SLOTS.forEach(function(t,i){var f=freeAt(S.loc,i);
+    h+='<button class="slot" data-act="slot" data-i="'+i+'" aria-pressed="'+(S.slot===i)+'"'+(f?'':' disabled')+'>'+t+'<small>'+(f?f+' free':'full')+'</small></button>';});
+  h+='</div><div class="stick"><button class="btn" data-act="toPay" '+(S.slot<0?'disabled':'')+'>'+(S.slot<0?'Select a time':'Continue at '+SLOTS[S.slot])+'</button></div>';
+  $('#book').innerHTML=h;
+ },
+ pay:function(){
+  var l=LOCS[S.loc],hasPass=S.pass&&S.pass.left>0;
+  if(!hasPass&&S.pay==='pass')S.pay='single';
+  var h='<button class="back" data-act="goBook">'+ic('back')+'Back</button><h1 class="h1">Confirm booking</h1>';
+  h+='<div class="card"><div class="kv"><span class="muted">Where</span><b>'+esc(l.name)+'</b></div><div class="kv"><span class="muted">When</span><b>Today, '+SLOTS[S.slot]+'</b></div><div class="kv"><span class="muted">Session</span><b>40-minute nap</b></div><div class="kv"><span class="muted">Includes</span><b style="text-align:right">Storage, charging, fresh sheet</b></div></div>';
+  h+='<div class="chips" style="flex-direction:column;gap:10px">'+
+   '<button class="opt" data-act="payWith" data-v="single" aria-pressed="'+(S.pay==='single')+'"><span class="radio"></span><span class="grow"><b>Pay per session</b><br><span class="small muted">One-time payment</span></span><b>'+money(PRICE)+'</b></button>'+
+   '<button class="opt" data-act="payWith" data-v="pass" aria-pressed="'+(S.pay==='pass')+'"'+(hasPass?'':' disabled')+'><span class="radio"></span><span class="grow"><b>Use your pass</b><br><span class="small muted">'+(hasPass?S.pass.left+' sessions left':'No active pass. See the Passes tab.')+'</span></span><b>'+(hasPass?'1 session':'')+'</b></button></div>';
+  h+='<button class="btn amber" data-act="confirm">'+(S.pay==='single'?'Pay '+money(PRICE)+' (demo)':'Book with pass')+'</button><p class="note" style="text-align:center">No real payment is taken in this prototype.</p>';
+  $('#pay').innerHTML=h;
+ },
+ ticket:function(){
+  var b=S.booking,l=LOCS[b.loc];
+  var h='<div><p class="eyebrow">Booking confirmed</p><h1 class="h1">Pod '+b.pod+' is yours</h1></div>';
+  h+='<div class="qrwrap">'+qr(b.code)+'</div><div class="code">'+b.code+'</div>';
+  h+='<div class="card"><div class="kv"><span class="muted">Where</span><b>'+esc(l.name)+'</b></div><div class="kv"><span class="muted">When</span><b>Today, '+SLOTS[b.slot]+'</b></div><div class="kv"><span class="muted">Pod</span><b>'+b.pod+'</b></div></div>';
+  h+='<p class="note">Scan this code at the capsule door to unlock it. The code shown here is a placeholder, not a working QR.</p>';
+  h+='<button class="btn amber" data-act="unlock">'+ic('lock')+' I am at the pod: unlock</button><button class="btn ghost" data-act="cancel">Cancel booking</button>';
+  $('#ticket').innerHTML=h;
+ },
+ done:function(){
+  var h;
+  if(S.sos){
+   h='<div class="row">'+ic('alert')+'<span class="pill">Door released</span></div><h1 class="h1">You are out safely</h1><p class="muted">The session ended early and the door was unlocked. In the real system, the on-site team would be notified. This is a demo.</p><button class="btn" data-act="finish">Back to home</button>';
+   $('#done').innerHTML=h;return;
+  }
+  var qs=[['wake','How did you feel when you woke up?',['Groggy','Okay','Fresh']],['noise','How quiet was it inside?',['Some noise','Quiet','Silent']]];
+  h='<div><span class="pill ok">'+ic('check')+' Session complete</span></div><h1 class="h1">Nice reset.</h1><p class="muted">You napped for 40 minutes. Please step out: the sheet is changing and UV cleaning starts for the next person.</p>';
+  qs.forEach(function(q){h+='<div class="card" style="display:flex;flex-direction:column;gap:12px"><b>'+q[1]+'</b><div class="chips">';
+    q[2].forEach(function(o){h+='<button class="chip" data-act="rate" data-g="'+q[0]+'" data-v="'+o+'" aria-pressed="'+(S.rate[q[0]]===o)+'">'+o+'</button>';});h+='</div></div>';});
+  h+='<button class="btn amber" data-act="finish">'+(S.rate.wake||S.rate.noise?'Send feedback':'Skip and go home')+'</button>';
+  $('#done').innerHTML=h;
+ },
+ pass:function(){
+  var h='<div><p class="eyebrow">Passes</p><h1 class="h1">Nap more, pay less</h1></div><p class="muted">Made for exam weeks and long timetables. A pass covers several sessions at a lower price per nap.</p>';
+  if(S.pass)h+='<div class="card row" style="background:var(--soft)">'+ic('check')+'<div class="grow"><b>'+esc(S.pass.name)+' active</b><p class="small muted">'+S.pass.left+' sessions left</p></div></div>';
+  PASSES.forEach(function(p){
+    h+='<div class="card" style="display:flex;flex-direction:column;gap:12px"><div class="row between"><h2 class="h2">'+p.name+'</h2><div class="free">'+money(p.price)+'</div></div><p class="muted small">'+p.sub+'. About '+money(Math.round(p.price/p.n))+' per session instead of '+money(PRICE)+'.</p><button class="btn ghost" data-act="buyPass" data-id="'+p.id+'">Get pass (demo)</button></div>';});
+  h+='<p class="note">Prices are sample values for the prototype.</p>';
+  $('#pass').innerHTML=h;
+ },
+ me:function(){
+  var h='<div><p class="eyebrow">Me</p><h1 class="h1">Your naps</h1></div>';
+  if(S.history.length){h+='<ul class="list">';S.history.slice().reverse().forEach(function(x){h+='<li class="card row"><span class="pill">'+ic('moon')+'</span><div class="grow"><b>'+esc(x.where)+'</b><p class="small muted">'+x.when+' · 40 min'+(x.wake?' · woke up '+x.wake.toLowerCase():'')+'</p></div></li>';});h+='</ul>';}
+  else h+='<div class="card muted">No naps yet. Your first session will show up here.</div>';
+  h+='<h2 class="h2" style="margin-top:8px">Safety and hygiene</h2><ul class="list">'+
+   ['UV runs only when the capsule is empty and locked','Ventilation and fire-safety checks','Emergency button opens the door from inside','No cameras inside the capsule','Fresh sheet after every session'].map(function(t){return '<li class="row">'+ic('shield')+'<span>'+t+'</span></li>';}).join('')+'</ul>';
+  $('#me').innerHTML=h;
+ }
+};
+
+/* pseudo QR placeholder: finder squares + code-seeded pattern */
+function qr(seed){
+  var n=25,a=0;for(var i=0;i<seed.length;i++)a=(a*31+seed.charCodeAt(i))>>>0;
+  function rnd(){a=(a+0x6D2B79F5)>>>0;var t=a;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;}
+  function finder(x,y){return x>=0&&x<7&&y>=0&&y<7?1:0;}
+  var out='<svg viewBox="0 0 '+n+' '+n+'" role="img" aria-label="Placeholder code" shape-rendering="crispEdges"><rect width="'+n+'" height="'+n+'" fill="#fff"/>';
+  function box(ox,oy){var s='';for(var y=0;y<7;y++)for(var x=0;x<7;x++){var edge=x==0||y==0||x==6||y==6,core=x>=2&&x<=4&&y>=2&&y<=4;if(edge||core)s+='<rect x="'+(ox+x)+'" y="'+(oy+y)+'" width="1" height="1" fill="#121A33"/>';}return s;}
+  out+=box(0,0)+box(n-7,0)+box(0,n-7);
+  for(var y=0;y<n;y++)for(var x=0;x<n;x++){
+    var inF=(x<8&&y<8)||(x>n-9&&y<8)||(x<8&&y>n-9);if(inF)continue;
+    if(rnd()>.52)out+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="#121A33"/>';}
+  return out+'</svg>';
+}
+
+/* ---- audio ---- */
+var ctx=null,master=null,nodes=[];
+function audio(){if(!ctx){try{var A=window.AudioContext||window.webkitAudioContext;ctx=new A();master=ctx.createGain();master.gain.value=$('#vol').value/100*.7;master.connect(ctx.destination);}catch(e){ctx=null;}}
+  if(ctx&&ctx.state==='suspended')ctx.resume();return ctx;}
+function noise(){var len=ctx.sampleRate*2,b=ctx.createBuffer(1,len,ctx.sampleRate),d=b.getChannelData(0);for(var i=0;i<len;i++)d[i]=Math.random()*2-1;var s=ctx.createBufferSource();s.buffer=b;s.loop=true;return s;}
+function stopSound(){nodes.forEach(function(n){try{n.stop();}catch(e){}try{n.disconnect();}catch(e){}});nodes=[];}
+function startSound(k){
+  stopSound();if(k==='off'||!audio())return;
+  var s=noise(),f=ctx.createBiquadFilter(),g=ctx.createGain();s.connect(f);f.connect(g);g.connect(master);nodes.push(s);
+  if(k==='rain'){f.type='bandpass';f.frequency.value=1500;f.Q.value=.5;g.gain.value=.5;}
+  if(k==='white'){f.type='lowpass';f.frequency.value=9000;g.gain.value=.25;}
+  if(k==='waves'){f.type='lowpass';f.frequency.value=700;g.gain.value=.35;var l=ctx.createOscillator(),lg=ctx.createGain();l.frequency.value=.12;lg.gain.value=.3;l.connect(lg);lg.connect(g.gain);l.start();nodes.push(l);}
+  if(k==='storm'){f.type='bandpass';f.frequency.value=1100;f.Q.value=.5;g.gain.value=.4;
+    var s2=noise(),f2=ctx.createBiquadFilter(),g2=ctx.createGain();s2.connect(f2);f2.connect(g2);g2.connect(master);f2.type='lowpass';f2.frequency.value=180;g2.gain.value=.7;nodes.push(s2);s2.start();
+    var l2=ctx.createOscillator(),lg2=ctx.createGain();l2.frequency.value=.07;lg2.gain.value=.4;l2.connect(lg2);lg2.connect(g2.gain);l2.start();nodes.push(l2);}
+  s.start();
+}
+function chime(at){if(!ctx)return;[523.25,659.25].forEach(function(fq,i){var o=ctx.createOscillator(),g=ctx.createGain(),t=ctx.currentTime+at+i*.18;o.type='sine';o.frequency.value=fq;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.18,t+.05);g.gain.exponentialRampToValueAtTime(.001,t+1.2);o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+1.3);});}
+
+/* ---- session ---- */
+var T={t:0,last:0,id:null,wake:false};
+var TOTAL=45*60;
+function fmt(s){s=Math.max(0,Math.ceil(s));return ('0'+Math.floor(s/60)).slice(-2)+':'+('0'+s%60).slice(-2);}
+function startSession(){
+  audio();
+  T.t=0;T.wake=false;T.last=performance.now();
+  $('#s-pod').classList.remove('waking');$('#wakeCard').hidden=true;
+  $('#phaseTxt').textContent='Settle in';
+  clearInterval(T.id);T.id=setInterval(tick,250);tick();
+}
+function tick(){
+  var now=performance.now(),dt=(now-T.last)/1000;T.last=now;T.t+=dt*(S.demo?60:1);
+  var m=T.t/60,ph=m<2?0:m<42?1:2;
+  if(T.t>=TOTAL){endSession(false);return;}
+  $('#time').textContent=fmt(TOTAL-T.t);
+  $('#ring').style.strokeDashoffset=String(553*(1-T.t/TOTAL));
+  $('#podPill').textContent=['Settling in','Napping','Waking up'][ph];
+  $('#phaseTxt').textContent=['Settle in','Sleep time','Gentle wake-up'][ph];
+  ['p1','p2','p3'].forEach(function(id,i){$('#'+id).classList.toggle('on',i<=ph);});
+  if(ph===2&&!T.wake)wakeUp();
+}
+function wakeUp(){
+  T.wake=true;$('#s-pod').classList.add('waking');$('#wakeCard').hidden=false;
+  chime(.6);chime(2.2);chime(3.8);
+  try{if(navigator.vibrate)navigator.vibrate([200,150,200]);}catch(e){}
+  if(S.sound!=='off'&&master)master.gain.linearRampToValueAtTime(0.0001,ctx.currentTime+2.5);
+}
+function endSession(sos){
+  clearInterval(T.id);T.id=null;stopSound();
+  S.sos=sos;S.sound='off';S.rate={};
+  go('done');
+}
+
+/* ---- actions ---- */
+var A={
+ start:function(){go('home');},
+ tab:function(b){go(b.dataset.to);},
+ loc:function(b){S.loc=+b.dataset.i;S.slot=-1;go('book');},
+ slot:function(b){S.slot=+b.dataset.i;R.book();},
+ toPay:function(){go('pay');},
+ goBook:function(){go('book');},
+ payWith:function(b){S.pay=b.dataset.v;R.pay();},
+ confirm:function(){
+  if(S.pay==='pass'&&S.pass)S.pass.left--;
+  var code='RSP-'+(1000+Math.floor(Math.random()*9000));
+  S.booking={loc:S.loc,slot:S.slot,pod:1+Math.floor(Math.random()*LOCS[S.loc].pods),code:code};
+  go('ticket');
+ },
+ cancel:function(){if(S.pay==='pass'&&S.pass)S.pass.left++;S.booking=null;S.slot=-1;go('home');},
+ unlock:function(){
+  S.sound='off';S.scent='None';
+  document.querySelectorAll('#sndSeg .chip').forEach(function(c){c.setAttribute('aria-pressed',c.dataset.v==='off');});
+  document.querySelectorAll('#scentSeg .chip').forEach(function(c){c.setAttribute('aria-pressed',c.dataset.v==='None');});
+  go('pod');startSession();
+ },
+ demo:function(b){S.demo=!S.demo;b.setAttribute('aria-pressed',S.demo);},
+ skip:function(){T.t=42*60;tick();},
+ sound:function(b){S.sound=b.dataset.v;document.querySelectorAll('#sndSeg .chip').forEach(function(c){c.setAttribute('aria-pressed',c===b);});startSound(S.sound);},
+ scent:function(b){S.scent=b.dataset.v;document.querySelectorAll('#scentSeg .chip').forEach(function(c){c.setAttribute('aria-pressed',c===b);});},
+ pair:function(){var t=$('#btTxt');var on=t.dataset.on!=='1';t.dataset.on=on?'1':'0';t.textContent=on?'Connected: your phone (demo)':'Pair your phone via Bluetooth (demo)';},
+ sos:function(){$('#sheet').hidden=false;},
+ sosNo:function(){$('#sheet').hidden=true;},
+ sosYes:function(){$('#sheet').hidden=true;endSession(true);},
+ rate:function(b){S.rate[b.dataset.g]=b.dataset.v;R.done();},
+ finish:function(){
+  if(S.booking&&!S.sos)S.history.push({where:LOCS[S.booking.loc].name,when:'Today, '+SLOTS[S.booking.slot],wake:S.rate.wake||''});
+  S.booking=null;S.slot=-1;S.sos=false;go('home');
+ },
+ buyPass:function(b){var p=PASSES.filter(function(x){return x.id===b.dataset.id;})[0];S.pass={name:p.name,left:p.n};R.pass();}
+};
+document.addEventListener('click',function(e){var b=e.target.closest('[data-act]');if(!b||b.disabled)return;var f=A[b.dataset.act];if(f)f(b);});
+$('#vol').addEventListener('input',function(){if(master)master.gain.value=this.value/100*.7;});
+$('#temp').addEventListener('input',function(){$('#tempV').textContent=this.value;});
+$('#light').addEventListener('input',function(){$('#lightV').textContent=this.value;});
+})();
+</script>
+
+</body></html>
